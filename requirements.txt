@@ -1,6 +1,7 @@
 Flask
 Flask-SQLAlchemy
+python-dotenv
 scikit-learn
-PyPDF2
-python-docx
 pdfplumber
+python-docx
+Werkzeug

@@ -2,9 +2,72 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CV/Resume Matcher</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
 
+    <header>
+        <h1>CV / Resume Matcher</h1>
+        <p>Upload your resume, paste a job description, and see how well they match.</p>
+    </header>
+
+    <main>
+        <section id="upload-section">
+            <h2>1. Upload Resume</h2>
+            <form id="resume-form">
+                <input type="file" id="resume-file" name="file" accept=".pdf,.docx,.txt" required>
+                <button type="submit">Upload Resume</button>
+            </form>
+            <p id="resume-status" class="status"></p>
+        </section>
+
+        <section id="job-section">
+            <h2>2. Job Description</h2>
+            <form id="job-form">
+                <input type="text" id="job-title" placeholder="Job title (optional)">
+                <textarea id="job-text" rows="8" placeholder="Paste the job description here..." required></textarea>
+                <button type="submit">Save Job Description</button>
+            </form>
+            <p id="job-status" class="status"></p>
+        </section>
+
+        <section id="match-section">
+            <h2>3. Run Match</h2>
+            <button id="match-btn" disabled>Run Match</button>
+            <div id="match-result" class="hidden">
+                <h3>Match Score</h3>
+                <div id="score-display"></div>
+
+                <div class="keywords">
+                    <div>
+                        <h4>Matched Keywords</h4>
+                        <ul id="matched-keywords"></ul>
+                    </div>
+                    <div>
+                        <h4>Missing Keywords</h4>
+                        <ul id="missing-keywords"></ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="history-section">
+            <h2>Match History</h2>
+            <table id="history-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Score</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody id="history-body"></tbody>
+            </table>
+        </section>
+    </main>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 </body>
 </html>

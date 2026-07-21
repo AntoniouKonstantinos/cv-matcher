@@ -1,0 +1,163 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background-color: #f4f6f8;
+    color: #1a1a1a;
+    line-height: 1.6;
+    padding: 2rem;
+}
+
+header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+header h1 {
+    font-size: 2rem;
+    color: #2c3e50;
+}
+
+header p {
+    color: #666;
+    margin-top: 0.5rem;
+}
+
+main {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+section {
+    background: #ffffff;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+section h2 {
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
+    color: #2c3e50;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+input[type="text"],
+input[type="file"],
+textarea {
+    width: 100%;
+    padding: 0.6rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-family: inherit;
+    font-size: 0.95rem;
+}
+
+textarea {
+    resize: vertical;
+}
+
+button {
+    background-color: #2c7be5;
+    color: white;
+    border: none;
+    padding: 0.6rem 1.2rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    align-self: flex-start;
+    transition: background-color 0.2s ease;
+}
+
+button:hover:not(:disabled) {
+    background-color: #1a63c9;
+}
+
+button:disabled {
+    background-color: #a9b7c6;
+    cursor: not-allowed;
+}
+
+.status {
+    margin-top: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.status.success {
+    color: #1e8e3e;
+}
+
+.status.error {
+    color: #d93025;
+}
+
+.hidden {
+    display: none;
+}
+
+#score-display {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: #2c7be5;
+    margin-bottom: 1rem;
+}
+
+.keywords {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+}
+
+.keywords h4 {
+    margin-bottom: 0.5rem;
+    color: #2c3e50;
+}
+
+.keywords ul {
+    list-style: none;
+}
+
+.keywords li {
+    padding: 0.3rem 0.6rem;
+    margin-bottom: 0.3rem;
+    border-radius: 4px;
+    font-size: 0.9rem;
+}
+
+#matched-keywords li {
+    background-color: #e6f4ea;
+    color: #1e8e3e;
+}
+
+#missing-keywords li {
+    background-color: #fce8e6;
+    color: #d93025;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th, td {
+    text-align: left;
+    padding: 0.6rem;
+    border-bottom: 1px solid #eee;
+}
+
+th {
+    color: #666;
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+}

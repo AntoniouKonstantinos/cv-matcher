@@ -1,0 +1,25 @@
+# Environment variables
+.env
+
+# Database
+instance/
+
+# Uploaded files (temporary)
+uploads/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+venv/
+env/
+*.egg-info/
+.venv/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db

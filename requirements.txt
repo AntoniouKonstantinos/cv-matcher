@@ -1,0 +1,7 @@
+Flask
+Flask-SQLAlchemy
+python-dotenv
+scikit-learn
+pdfplumber
+python-docx
+Werkzeug

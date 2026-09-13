@@ -3,7 +3,7 @@ from typing import Optional
 from sqlalchemy import String, Text, Float, ForeignKey, DateTime
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.database import Base
+from app import Base
 
 
 class Resume(Base):

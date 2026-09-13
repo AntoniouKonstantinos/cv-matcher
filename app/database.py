@@ -29,5 +29,4 @@ async def get_db():
 async def init_db():
     os.makedirs(os.path.join(BASE_DIR, 'instance'), exist_ok=True)
     async with engine.begin() as conn:
-        from app import models
         await conn.run_sync(Base.metadata.create_all)

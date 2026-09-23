@@ -1,6 +1,6 @@
 import json
 import pytest
-from app import compute_similarity, extract_keywords, compare_keywords, match_resume_to_job
+from app.matching import compute_similarity, extract_keywords, compare_keywords, match_resume_to_job
 
 
 def test_compute_similarity_identical_texts():

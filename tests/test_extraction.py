@@ -1,5 +1,5 @@
 import pytest
-from app import allowed_file, extract_text
+from app.extraction import allowed_file, extract_text
 
 
 def test_allowed_file_accepts_valid_extensions():

@@ -1,13 +1,22 @@
 import json
+from functools import lru_cache
+from sentence_transformers import SentenceTransformer, util
 from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.metrics.pairwise import cosine_similarity
+
+MODEL_NAME = "all-MiniLM-L6-v2"
+MATCH_THRESHOLD = 0.45
+
+
+@lru_cache(maxsize=1)
+def get_model():
+    return SentenceTransformer(MODEL_NAME)
 
 
 def compute_similarity(resume_text, job_text):
-    vectorizer = TfidfVectorizer(stop_words='english', ngram_range=(1, 2))
-    tfidf_matrix = vectorizer.fit_transform([resume_text, job_text])
-    score = cosine_similarity(tfidf_matrix[0:1], tfidf_matrix[1:2])[0][0]
-    return float(score)
+    model = get_model()
+    embeddings = model.encode([resume_text, job_text], convert_to_tensor=True)
+    score = util.cos_sim(embeddings[0], embeddings[1])
+    return float(score.item())
 
 
 def extract_keywords(job_text, top_n=20):
@@ -25,13 +34,21 @@ def extract_keywords(job_text, top_n=20):
 
 def compare_keywords(resume_text, job_text, top_n=20):
     job_keywords = extract_keywords(job_text, top_n=top_n)
-    resume_lower = resume_text.lower()
+
+    if not job_keywords:
+        return [], []
+
+    model = get_model()
+    resume_embedding = model.encode(resume_text, convert_to_tensor=True)
+    keyword_embeddings = model.encode(job_keywords, convert_to_tensor=True)
+
+    similarities = util.cos_sim(keyword_embeddings, resume_embedding).squeeze(1)
 
     matched = []
     missing = []
 
-    for kw in job_keywords:
-        if kw.lower() in resume_lower:
+    for kw, sim in zip(job_keywords, similarities):
+        if sim.item() >= MATCH_THRESHOLD:
             matched.append(kw)
         else:
             missing.append(kw)

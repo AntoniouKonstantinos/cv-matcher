@@ -4,7 +4,7 @@ from sentence_transformers import SentenceTransformer, util
 from sklearn.feature_extraction.text import TfidfVectorizer
 
 MODEL_NAME = "all-MiniLM-L6-v2"
-MATCH_THRESHOLD = 0.45
+MATCH_THRESHOLD = 0.30
 
 
 @lru_cache(maxsize=1)

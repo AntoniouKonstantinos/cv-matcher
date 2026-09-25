@@ -16,7 +16,16 @@ def test_compute_similarity_unrelated_texts():
 
     score = compute_similarity(resume, job)
 
-    assert score < 0.2
+    assert score < 0.4
+
+
+def test_compute_similarity_semantically_related_paraphrase():
+    resume = "Led a team of engineers building backend services"
+    job = "Looking for someone experienced managing a software development team"
+
+    score = compute_similarity(resume, job)
+
+    assert score > 0.4
 
 
 def test_compute_similarity_returns_float():
@@ -48,6 +57,15 @@ def test_compare_keywords_finds_missing():
     matched, missing = compare_keywords(resume, job)
 
     assert len(missing) > 0
+
+
+def test_compare_keywords_semantic_match_without_exact_words():
+    resume = "Managed a group of software engineers on a daily basis"
+    job = "Requires strong leadership and team management experience"
+
+    matched, missing = compare_keywords(resume, job)
+
+    assert len(matched) > 0
 
 
 def test_match_resume_to_job_structure():

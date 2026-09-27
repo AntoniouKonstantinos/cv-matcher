@@ -47,6 +47,34 @@ class MatchResult(Base):
 
     resume: Mapped["Resume"] = relationship(back_populates="matches")
     job: Mapped["JobDescription"] = relationship(back_populates="matches")
+    skill_gaps: Mapped[list["SkillGapResult"]] = relationship(back_populates="match")
 
     def __repr__(self):
         return f'<MatchResult {self.id}: {self.similarity_score:.2f}>'
+
+
+class Skill(Base):
+    __tablename__ = 'skills'
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(100), nullable=False, unique=True)
+    category: Mapped[str] = mapped_column(String(50), nullable=False)
+
+    def __repr__(self):
+        return f'<Skill {self.id}: {self.name} ({self.category})>'
+
+
+class SkillGapResult(Base):
+    __tablename__ = 'skill_gap_results'
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    match_id: Mapped[int] = mapped_column(ForeignKey('match_results.id'), nullable=False)
+    skill_id: Mapped[int] = mapped_column(ForeignKey('skills.id'), nullable=False)
+    present_in_resume: Mapped[bool] = mapped_column(nullable=False)
+    confidence_score: Mapped[float] = mapped_column(Float, nullable=False)
+
+    match: Mapped["MatchResult"] = relationship(back_populates="skill_gaps")
+    skill: Mapped["Skill"] = relationship()
+
+    def __repr__(self):
+        return f'<SkillGapResult match={self.match_id} skill={self.skill_id} present={self.present_in_resume}>'

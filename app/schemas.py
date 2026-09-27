@@ -68,3 +68,17 @@ class MatchHistoryResponse(BaseModel):
 
 class ErrorResponse(BaseModel):
     error: str
+
+
+class SkillGapItem(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    skill_name: str
+    category: str
+    present_in_resume: bool
+    confidence_score: float
+
+
+class SkillsGapResponse(BaseModel):
+    match_id: int
+    skills: list[SkillGapItem]

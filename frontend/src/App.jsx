@@ -1,122 +1,65 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import './App.css'
+import { useState } from "react";
+import ResumeUpload from "./components/ResumeUpload";
+import JobDescriptionForm from "./components/JobDescriptionForm";
+import MatchScore from "./components/MatchScore";
+import SkillsGapDashboard from "./components/SkillsGapDashboard";
+import MatchHistory from "./components/MatchHistory";
+import { runMatch } from "./api";
+import "./styles/index.css";
 
 function App() {
-  const [count, setCount] = useState(0)
+    const [resumeId, setResumeId] = useState(null);
+    const [jobId, setJobId] = useState(null);
+    const [matchResult, setMatchResult] = useState(null);
+    const [isMatching, setIsMatching] = useState(false);
+    const [matchError, setMatchError] = useState(null);
+    const [historyRefreshKey, setHistoryRefreshKey] = useState(0);
 
-  return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+    const canMatch = resumeId && jobId;
 
-      <div className="ticks"></div>
+    async function handleRunMatch() {
+        setIsMatching(true);
+        setMatchError(null);
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+        try {
+            const data = await runMatch(resumeId, jobId);
+            setMatchResult(data);
+            setHistoryRefreshKey((key) => key + 1);
+        } catch (err) {
+            setMatchError(err.message);
+        } finally {
+            setIsMatching(false);
+        }
+    }
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+    return (
+        <main>
+            <header>
+                <h1>CV / Resume Matcher</h1>
+                <p>Upload your resume, paste a job description, and see how well they match.</p>
+            </header>
+
+            <ResumeUpload onUploadSuccess={setResumeId} />
+            <JobDescriptionForm onJobSaved={setJobId} />
+
+            <section>
+                <h2>3. Run Match</h2>
+                <button onClick={handleRunMatch} disabled={!canMatch || isMatching}>
+                    {isMatching ? "Matching..." : "Run Match"}
+                </button>
+                {matchError && <p className="status error">{matchError}</p>}
+
+                {matchResult && (
+                    <>
+                        <MatchScore result={matchResult} />
+                        <SkillsGapDashboard matchId={matchResult.id} />
+                    </>
+                )}
+            </section>
+
+            <MatchHistory refreshKey={historyRefreshKey} />
+        </main>
+    );
 }
 
-export default App
+export default App;

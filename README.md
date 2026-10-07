@@ -1,97 +1,133 @@
 # CV/Resume Matcher
 
-A full-stack web application that analyzes how well a resume matches a job description using NLP techniques, and returns a similarity score along with matched and missing keywords.
+A full-stack web application that analyzes how well a resume matches a job description using NLP, and explains *why* — showing a similarity score, a keyword breakdown, and a skills-gap dashboard highlighting which specific skills are present or missing.
 
-Built as a hands-on exploration of applying text processing to a real-world problem: helping job seekers understand how their resume aligns with a specific job posting.
+Originally built as a first portfolio project exploring NLP applied to a real-world problem. This is the **v2** version: a significant architectural upgrade from the original (Flask + TF-IDF + vanilla JS), now using semantic embeddings, FastAPI, and a React frontend. The original v1 is preserved as a tag (`v1.0`) in this repo's history.
 
 ## Features
 
 - **Upload resumes** in PDF, DOCX, or TXT format
 - **Submit job descriptions** as plain text
-- **NLP-based matching** using TF-IDF vectorization and cosine similarity
-- **Keyword breakdown** showing which important terms from the job description are present in (or missing from) the resume
-- **Match history** stored in a database, so past comparisons can be reviewed later
-- **REST API** built with Flask, consumed by a vanilla JavaScript frontend
+- **Semantic matching** using sentence embeddings (not just keyword overlap) — recognizes that "led a development team" and "experience managing engineers" describe the same thing, even with no shared words
+- **Skills-gap dashboard** — checks the resume against a curated taxonomy of technical and soft skills, showing which skills the job requires, which are present in the resume, and a confidence score for each
+- **Match history** stored in a database, viewable at any time
+- **REST API** built with FastAPI, with interactive auto-generated documentation
+- **React frontend** for a responsive, component-based UI
 
 ## Tech Stack
 
-- **Backend:** Python, Flask, Flask-SQLAlchemy
-- **NLP / Matching:** scikit-learn (TF-IDF, cosine similarity)
+- **Backend:** Python, FastAPI, SQLAlchemy 2.0 (async)
+- **NLP / Matching:** sentence-transformers (semantic embeddings), scikit-learn (TF-IDF for candidate keyword extraction)
 - **Text extraction:** pdfplumber (PDF), python-docx (DOCX)
-- **Database:** SQLite (development), designed to be portable to PostgreSQL
-- **Frontend:** Vanilla JavaScript, HTML, CSS
+- **Database:** SQLite (async via aiosqlite), portable to PostgreSQL
+- **Frontend:** React (Vite), vanilla CSS
+- **Testing:** pytest, pytest-asyncio, httpx
 
 ## How It Works
 
-1. A user uploads a resume and pastes a job description.
+1. A user uploads a resume and submits a job description.
 2. The backend extracts raw text from the uploaded file.
-3. Both texts are vectorized using **TF-IDF** (unigrams and bigrams), and compared using **cosine similarity** to produce a match score between 0 and 1.
-4. The top TF-IDF-weighted keywords from the job description are checked against the resume text, producing lists of **matched** and **missing** keywords.
-5. The result is stored in the database and returned to the frontend for display.
+3. Both texts are encoded into dense vector embeddings using a sentence-transformers model, and compared using cosine similarity to produce an overall match score.
+4. Candidate keywords are extracted from the job description (via TF-IDF) and compared against the resume using semantic similarity, producing matched/missing keyword lists.
+5. Separately, the resume and job description are checked against a curated skills taxonomy (languages, frameworks, databases, tools, concepts, and soft skills). For every skill relevant to the job, the app reports whether it's present in the resume and a confidence score — this is what powers the skills-gap dashboard.
+6. Every result is stored in the database, building a searchable match history.
 
 ## Project Structure
 
 ```
 cv-matcher/
-├── app/
-│   ├── __init__.py       # Flask application factory
-│   ├── models.py         # Database models (Resume, JobDescription, MatchResult)
-│   ├── routes.py         # API endpoints
-│   ├── extraction.py     # Text extraction from PDF/DOCX/TXT
-│   └── matching.py       # TF-IDF + cosine similarity logic
-├── static/                # CSS and JavaScript
-├── templates/              # HTML templates
-├── tests/                 # Unit tests
-├── config.py               # App configuration
-├── run.py                  # Application entry point
-└── requirements.txt
+├── app/                        # FastAPI backend
+│   ├── main.py                  # App entrypoint, CORS, lifespan
+│   ├── database.py               # Async engine/session setup
+│   ├── models.py                  # SQLAlchemy 2.0 models
+│   ├── schemas.py                  # Pydantic request/response schemas
+│   ├── extraction.py                # Text extraction from PDF/DOCX/TXT
+│   ├── matching.py                   # Semantic similarity + keyword extraction
+│   ├── skills.py                      # Skills-gap matching logic
+│   ├── seed.py                         # Seeds the skills taxonomy
+│   └── routers/
+│       ├── resumes.py
+│       ├── jobs.py
+│       └── matches.py
+├── frontend/                    # React app (Vite)
+│   └── src/
+│       ├── components/
+│       ├── api.js
+│       ├── App.jsx
+│       └── styles/
+├── tests/                        # pytest + pytest-asyncio + httpx
+├── instance/                      # SQLite database (gitignored)
+├── uploads/                        # Temporary upload storage (gitignored)
+├── requirements.txt
+└── pytest.ini
 ```
 
 ## API Endpoints
 
-| Method | Endpoint              | Description                              |
-|--------|------------------------|-------------------------------------------|
-| POST   | `/api/resumes`         | Upload a resume file                      |
-| POST   | `/api/jobs`             | Submit a job description                  |
-| POST   | `/api/match`             | Run a match between a resume and a job    |
-| GET    | `/api/matches`           | List match history                        |
-| GET    | `/api/matches/<id>`       | Get details of a specific match           |
-| GET    | `/api/resumes/<id>`       | View extracted text of a resume           |
-| GET    | `/api/jobs/<id>`           | View a stored job description             |
+| Method | Endpoint | Description |
+|---|---|---|
+| POST | `/api/resumes` | Upload and process a resume file |
+| GET | `/api/resumes/{id}` | View a stored resume's extracted text |
+| POST | `/api/jobs` | Submit a job description |
+| GET | `/api/jobs/{id}` | View a stored job description |
+| POST | `/api/matches` | Run a match between a resume and a job |
+| GET | `/api/matches` | List match history (paginated) |
+| GET | `/api/matches/{id}` | Details of a specific match |
+| GET | `/api/matches/{id}/skills-gap` | Skills-gap breakdown for a match |
+
+Full interactive documentation is available at `/docs` once the backend is running.
 
 ## Setup
 
+### Backend
+
 ```bash
-# Clone the repository
-git clone https://github.com/AntoniouKonstantinos/cv-matcher.git
 cd cv-matcher
-
-# Create a virtual environment
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-
-# Install dependencies
+python -m venv .venv
+source .venv/bin/activate      # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 
-# Create required folders
-mkdir instance uploads
-
-# Run the app
-python run.py
+python -m app.seed              # populates the skills taxonomy
+uvicorn app.main:app --reload
 ```
 
-The app will be available at `http://localhost:5000`.
+The API will be available at `http://127.0.0.1:8000`, with interactive docs at `http://127.0.0.1:8000/docs`.
+
+### Frontend
+
+In a separate terminal:
+
+```bash
+cd cv-matcher/frontend
+npm install
+npm run dev
+```
+
+The app will be available at `http://localhost:5173`.
+
+## Testing
+
+```bash
+pytest tests/ -v
+```
+
+Covers text extraction, semantic matching logic, skills-gap analysis, and full API integration tests.
 
 ## Why This Project
 
-This project was built to practice combining classical NLP techniques (TF-IDF, cosine similarity) with a full-stack application, going beyond tutorial-style projects by tackling a real, practical problem: helping people understand and improve how their resume matches a specific job posting.
+Built to go beyond keyword matching and apply genuinely useful NLP — semantic similarity instead of surface-level text overlap — to a problem every job seeker runs into: understanding how well a resume actually fits a specific role, and what's missing. The v2 rewrite was also an exercise in migrating a working application to a more modern stack (Flask → FastAPI, vanilla JS → React) without breaking what already worked.
+
+## Version History
+
+- **v1** (tag `v1.0`): Flask, TF-IDF + cosine similarity, vanilla JavaScript frontend
+- **v2** (current): FastAPI, sentence-transformers embeddings, skills-gap dashboard, React frontend
 
 ## Future Improvements
 
-- Support for more nuanced matching (e.g. synonym awareness, skill taxonomies)
-- User accounts to track match history per person
-- Resume improvement suggestions based on missing keywords
-- Support for multiple job descriptions compared against one resume
+- Expand the skills taxonomy based on real job postings
+- Resume improvement suggestions based on missing skills
+- Compare one resume against multiple job postings at once
+- Deploy a live demo
 
 ## License
 

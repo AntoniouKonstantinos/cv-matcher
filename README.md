@@ -32,6 +32,20 @@ Originally built as a first portfolio project exploring NLP applied to a real-wo
 5. Separately, the resume and job description are checked against a curated skills taxonomy (languages, frameworks, databases, tools, concepts, and soft skills). For every skill relevant to the job, the app reports whether it's present in the resume and a confidence score — this is what powers the skills-gap dashboard.
 6. Every result is stored in the database, building a searchable match history.
 
+## Screenshots
+
+**Upload a resume and submit a job description**
+
+![Upload and job description form](screenshots/upload-and-job-form.png)
+
+**Match score and keyword breakdown**
+
+![Match score and keywords](screenshots/match-score-keywords.png)
+
+**Skills-gap dashboard and match history**
+
+![Skills gap dashboard and match history](screenshots/skills-gap-and-history.png)
+
 ## Project Structure
 
 ```

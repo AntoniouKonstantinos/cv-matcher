@@ -1,5 +1,5 @@
 import pytest
-from app.skills import analyze_skills_gap
+from app.skills import analyze_skills_gap, mentions_skill
 
 
 class FakeSkill:
@@ -90,3 +90,40 @@ def test_analyze_skills_gap_sorted_by_confidence_descending():
 
     scores = [r['confidence_score'] for r in result]
     assert scores == sorted(scores, reverse=True)
+
+
+def test_explicit_mention_gets_full_confidence():
+    resume = "Python developer with five years of experience"
+    job = "Looking for a Python developer"
+    skills = [FakeSkill("Python", "language")]
+
+    result = analyze_skills_gap(resume, job, skills)
+
+    assert result[0]['present_in_resume'] is True
+    assert result[0]['confidence_score'] == 1.0
+
+
+def test_mentions_skill_respects_word_boundaries():
+    assert mentions_skill("Experienced in JavaScript", "Java") is False
+    assert mentions_skill("Experienced in Java and Spring", "Java") is True
+
+
+def test_mentions_skill_is_case_insensitive():
+    assert mentions_skill("worked with PYTHON daily", "Python") is True
+
+
+def test_mentions_skill_matches_aliases():
+    assert mentions_skill("Deployed services on k8s clusters", "Kubernetes") is True
+    assert mentions_skill("Used Postgres for storage", "PostgreSQL") is True
+
+
+def test_mentions_skill_handles_special_characters():
+    text = "Wrote C# and C++ services using CI/CD pipelines"
+
+    assert mentions_skill(text, "C#") is True
+    assert mentions_skill(text, "C++") is True
+    assert mentions_skill(text, "CI/CD") is True
+
+
+def test_mentions_skill_returns_false_when_absent():
+    assert mentions_skill("Marketing specialist", "Docker") is False

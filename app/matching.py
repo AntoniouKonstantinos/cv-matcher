@@ -3,6 +3,8 @@ from functools import lru_cache
 from sentence_transformers import SentenceTransformer, util
 from sklearn.feature_extraction.text import TfidfVectorizer
 
+from app.chunking import split_into_chunks
+
 MODEL_NAME = "all-MiniLM-L6-v2"
 MATCH_THRESHOLD = 0.30
 
@@ -13,10 +15,20 @@ def get_model():
 
 
 def compute_similarity(resume_text, job_text):
+    resume_chunks = split_into_chunks(resume_text)
+    job_chunks = split_into_chunks(job_text)
+
+    if not resume_chunks or not job_chunks:
+        return 0.0
+
     model = get_model()
-    embeddings = model.encode([resume_text, job_text], convert_to_tensor=True)
-    score = util.cos_sim(embeddings[0], embeddings[1])
-    return float(score.item())
+    resume_embeddings = model.encode(resume_chunks, convert_to_tensor=True)
+    job_embeddings = model.encode(job_chunks, convert_to_tensor=True)
+
+    similarities = util.cos_sim(job_embeddings, resume_embeddings)
+    best_match_per_job_chunk = similarities.max(dim=1).values
+
+    return float(best_match_per_job_chunk.mean().item())
 
 
 def extract_keywords(job_text, top_n=20):
@@ -38,16 +50,21 @@ def compare_keywords(resume_text, job_text, top_n=20):
     if not job_keywords:
         return [], []
 
+    resume_chunks = split_into_chunks(resume_text)
+
+    if not resume_chunks:
+        return [], job_keywords
+
     model = get_model()
-    resume_embedding = model.encode(resume_text, convert_to_tensor=True)
+    chunk_embeddings = model.encode(resume_chunks, convert_to_tensor=True)
     keyword_embeddings = model.encode(job_keywords, convert_to_tensor=True)
 
-    similarities = util.cos_sim(keyword_embeddings, resume_embedding).squeeze(1)
+    best_match_per_keyword = util.cos_sim(keyword_embeddings, chunk_embeddings).max(dim=1).values
 
     matched = []
     missing = []
 
-    for kw, sim in zip(job_keywords, similarities):
+    for kw, sim in zip(job_keywords, best_match_per_keyword):
         if sim.item() >= MATCH_THRESHOLD:
             matched.append(kw)
         else:

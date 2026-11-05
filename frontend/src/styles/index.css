@@ -120,6 +120,10 @@ button:disabled {
     color: #2c3e50;
 }
 
+section h3 {
+    margin-top: 1.5rem;
+}
+
 .keywords ul {
     list-style: none;
 }

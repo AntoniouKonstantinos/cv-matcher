@@ -1,6 +1,24 @@
 import { useState, useEffect } from "react";
 import { getSkillsGap } from "../api";
 
+const EXPLICIT_THRESHOLD = 0.9999;
+
+function getStatus(skill) {
+    if (!skill.present_in_resume) {
+        return { className: "skill-missing", label: "Not found", rank: 2 };
+    }
+
+    if (skill.confidence_score >= EXPLICIT_THRESHOLD) {
+        return { className: "skill-present", label: "Found", rank: 0 };
+    }
+
+    return {
+        className: "skill-related",
+        label: `Related · ${Math.round(skill.confidence_score * 100)}%`,
+        rank: 1,
+    };
+}
+
 function SkillsGapDashboard({ matchId }) {
     const [skills, setSkills] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -52,9 +70,17 @@ function SkillsGapDashboard({ matchId }) {
         if (!acc[skill.category]) {
             acc[skill.category] = [];
         }
-        acc[skill.category].push(skill);
+        acc[skill.category].push({ ...skill, status: getStatus(skill) });
         return acc;
     }, {});
+
+    for (const categorySkills of Object.values(grouped)) {
+        categorySkills.sort(
+            (a, b) =>
+                a.status.rank - b.status.rank ||
+                a.skill_name.localeCompare(b.skill_name)
+        );
+    }
 
     return (
         <div>
@@ -64,14 +90,9 @@ function SkillsGapDashboard({ matchId }) {
                     <h4>{category}</h4>
                     <ul className="skills-list">
                         {categorySkills.map((skill) => (
-                            <li
-                                key={skill.skill_name}
-                                className={skill.present_in_resume ? "skill-present" : "skill-missing"}
-                            >
+                            <li key={skill.skill_name} className={skill.status.className}>
                                 {skill.skill_name}
-                                <span className="confidence">
-                                    {Math.round(skill.confidence_score * 100)}%
-                                </span>
+                                <span className="confidence">{skill.status.label}</span>
                             </li>
                         ))}
                     </ul>

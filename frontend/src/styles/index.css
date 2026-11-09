@@ -192,3 +192,8 @@ th {
     font-size: 0.85rem;
     text-transform: uppercase;
 }
+
+.skills-list li.skill-related {
+    background-color: #fef7e0;
+    color: #b06000;
+}

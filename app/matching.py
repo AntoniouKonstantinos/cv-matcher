@@ -1,12 +1,26 @@
 import json
 from functools import lru_cache
 from sentence_transformers import SentenceTransformer, util
-from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.feature_extraction.text import TfidfVectorizer, ENGLISH_STOP_WORDS
 
 from app.chunking import split_into_chunks
 
 MODEL_NAME = "all-MiniLM-L6-v2"
 MATCH_THRESHOLD = 0.30
+
+GENERIC_JOB_WORDS = {
+    'job', 'role', 'position', 'candidate', 'candidates', 'company',
+    'team', 'teams', 'work', 'working', 'works', 'experience', 'experienced',
+    'strong', 'good', 'great', 'excellent', 'ability', 'skills', 'skill',
+    'knowledge', 'understanding', 'responsibilities', 'requirements',
+    'required', 'preferred', 'plus', 'looking', 'join', 'based', 'build',
+    'building', 'built', 'designing', 'real', 'time', 'fast', 'help', 'new',
+    'including', 'ideal', 'must', 'will', 'etc', 'internal', 'operational',
+    'product', 'business', 'environment', 'opportunity', 'across', 'within',
+    'using', 'use', 'highly', 'high', 'impact', 'full', 'description',
+    'years', 'year',
+}
+KEYWORD_STOP_WORDS = list(ENGLISH_STOP_WORDS | GENERIC_JOB_WORDS)
 
 
 @lru_cache(maxsize=1)
@@ -32,7 +46,7 @@ def compute_similarity(resume_text, job_text):
 
 
 def extract_keywords(job_text, top_n=20):
-    vectorizer = TfidfVectorizer(stop_words='english', ngram_range=(1, 2))
+    vectorizer = TfidfVectorizer(stop_words=KEYWORD_STOP_WORDS, ngram_range=(1, 2))
     tfidf_matrix = vectorizer.fit_transform([job_text])
 
     feature_names = vectorizer.get_feature_names_out()

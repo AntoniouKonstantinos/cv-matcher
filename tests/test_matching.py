@@ -81,3 +81,17 @@ def test_match_resume_to_job_structure():
     assert isinstance(result['similarity_score'], float)
     assert isinstance(json.loads(result['matched_keywords']), list)
     assert isinstance(json.loads(result['missing_keywords']), list)
+
+
+def test_extract_keywords_excludes_generic_job_words():
+    job_text = (
+        "We are looking for a strong team player to work on our internal "
+        "backend systems. Experience with Python and Flask is required."
+    )
+
+    keywords = extract_keywords(job_text, top_n=20)
+
+    for noise in ["looking", "strong", "team", "work", "internal", "experience", "required"]:
+        assert not any(noise in kw.split() for kw in keywords)
+
+    assert "python" in keywords
